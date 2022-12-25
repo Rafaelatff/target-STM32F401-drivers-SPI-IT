@@ -29,17 +29,17 @@ To handle with the TXE interrupt we need to know if the transmit data is 8-bit o
 
 For TXE interrupt we have the following code:
 
-![image](https://user-images.githubusercontent.com/58916022/209453768-0d2065d5-23a3-4ede-8285-1c052d00fba4.png)
+![image](https://user-images.githubusercontent.com/58916022/209470452-b91e6f67-5337-49ba-b1ed-e5f31b617097.png)
 
 For RXNE interrupt we have the following code:
 
-![image](https://user-images.githubusercontent.com/58916022/209453773-c2573b57-cfbd-4259-bd86-1f23616d8a21.png)
+![image](https://user-images.githubusercontent.com/58916022/209470459-52777f72-0b5a-4d5c-910f-f5767f199f6a.png)
 
 For ERROR interrupt we have the following code (NOT IMPLEMENTED: CRC ERROR, MODF [multi-master] and FRE [frame-format]):
 
 OVR Implementation -> The OVR bit controls the generation of an interrupt when an error condition occurs (CRCERR, OVR, MODF in SPI mode). If data are received while the previously received data have not been read yet, an overrun is generated and the OVR flag is set. If the ERRIE bit is set in the SPI_CR2 register, an interrupt is generated to indicate the error. The new data is lost and the previous not read data remains in buffer.
 
-![image](https://user-images.githubusercontent.com/58916022/209453776-5c861231-d19c-4e73-9f42-98d91dc28d6f.png)
+![image](https://user-images.githubusercontent.com/58916022/209470465-52852849-3f0d-45b5-8ba2-ece3713d457e.png)
 
 Those 3 functions we declared as helper functions that are private to SPI driver. We didn't declare those at the SPI.h file, instead we only declared in the SPI.c file with the key word 'static'. 'static' indicates that are actually private helper function (app cannot call them, compiler generates an error if so). We also added some atributes to those.
 
