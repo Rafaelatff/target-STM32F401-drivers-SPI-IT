@@ -17,8 +17,6 @@ For the SPI_SendDataWithIT we need to:
 
 * 1. Save the Tx buffer address and Len information in some global variables. Those will be place inside the struct SPI_Handle_t.
 
-![image](https://user-images.githubusercontent.com/58916022/209453182-3e6769a6-74d6-41a9-8080-12c8a7aa7b7e.png)
-
 * 2. Mark the SPI state as busy in transmission so that no other code can take over same SPI peripheral until tx is over.
 
 * 3. Enable the TXEIE control bit to get interrupt whenever TXE flag is set in SR. This control bit is inside the CR2.
