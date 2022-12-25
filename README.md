@@ -41,4 +41,73 @@ OVR Implementation -> The OVR bit controls the generation of an interrupt when a
 
 ![image](https://user-images.githubusercontent.com/58916022/209453776-5c861231-d19c-4e73-9f42-98d91dc28d6f.png)
 
+Those 3 functions we declared as helper functions that are private to SPI driver. We didn't declare those at the SPI.h file, instead we only declared in the SPI.c file with the key word 'static'. 'static' indicates that are actually private helper function (app cannot call them, compiler generates an error if so). We also added some atributes to those.
+
+![image](https://user-images.githubusercontent.com/58916022/209470272-bd611ce3-b63d-40ac-bcaa-dd26a2b73ca1.png)
+
+And at the end of this file we added those:
+
+```
+/// helper functions implementations
+static void spi_txe_interrupt_handle(SPI_Handle_t *pSPIHandle){
+	// Check the DFF  bit in CR1
+	if((pSPIHandle->pSPIx->CR1 & (1 << SPI_CR1_DFF))){
+		// 16-bit DFF
+		//2.a. Load the data in to the DR
+		pSPIHandle->pSPIx->DR = *((uint16_t*)pSPIHandle->pTxBuffer); //de-referenced value typecasted to 16 bit lenght
+		pSPIHandle->TxLen--;
+		pSPIHandle->TxLen--; // 2 bytes sent at time
+		(uint16_t*)pSPIHandle->pTxBuffer++; // Increment the buffer
+	}else{
+		// 8-bit DFF
+		pSPIHandle->pSPIx->DR = *((uint16_t*)pSPIHandle->pTxBuffer); //de-referenced value typecasted to 16 bit lenght
+		pSPIHandle->TxLen--;
+		(uint16_t*)pSPIHandle->pTxBuffer++; // Increment the buffer
+	}
+
+	if (!pSPIHandle->TxLen){ // if TxLen = 0, Tx is over
+		SPI_CloseTransmission(pSPIHandle);
+		SPI_ApplicationEventCallback(pSPIHandle,SPI_EVENT_TX_CMPLT);
+	}
+	//If Len isnt 0, the interruption is call again
+}
+static void spi_rxe_interrupt_handle(SPI_Handle_t *pSPIHandle){
+	// do rxing as per the dff (8bit or 16bit)
+	if(pSPIHandle->pSPIx->CR1 & (1 << 11)){
+		//16 bit
+		*((uint16_t*)pSPIHandle->pRxBuffer) = (uint16_t)pSPIHandle->pSPIx->DR;
+		pSPIHandle->RxLen -= 2;
+		pSPIHandle->pRxBuffer--;
+		pSPIHandle->pRxBuffer--;
+	}else{
+		//8 bit
+		*(pSPIHandle->pRxBuffer) = (uint8_t)pSPIHandle->pSPIx->DR;
+		pSPIHandle->RxLen--;
+		pSPIHandle->pRxBuffer--;
+	}
+	if (!pSPIHandle->RxLen){ // if RxLen = 0, Rx is over
+		SPI_CloseReception(pSPIHandle);
+		SPI_ApplicationEventCallback(pSPIHandle,SPI_EVENT_RX_CMPLT);
+	}
+}
+static void spi_ovr_err_interrupt_handle(SPI_Handle_t *pSPIHandle){
+	uint8_t temp;
+	// 1. Clear the OVR flag (by reading DR and SR)
+	if(pSPIHandle->TxState != SPI_BUSY_IN_TX){
+		temp = pSPIHandle->pSPIx->DR;
+		temp = pSPIHandle->pSPIx->SR;
+	}
+	(void)temp; // Compiler wont complain about unused variable
+	// 2. Inform the application
+	SPI_ApplicationEventCallback(pSPIHandle,SPI_EVENT_OVR_ERR);
+}
+
+```
+
+The SPI_ApplicationEventCallback() was created as a week function. It is expected that a weak implementation will be override by another created by the user.
+
+![image](https://user-images.githubusercontent.com/58916022/209470351-de234b7e-9ea4-4d26-8ee6-c8f932b1c23d.png)
+
+
+
 
