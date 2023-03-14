@@ -47,7 +47,7 @@ Those 3 functions we declared as helper functions that are private to SPI driver
 
 And at the end of this file we added those:
 
-```
+```c
 /// helper functions implementations
 static void spi_txe_interrupt_handle(SPI_Handle_t *pSPIHandle){
 	// Check the DFF  bit in CR1
